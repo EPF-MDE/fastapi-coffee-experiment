@@ -18,8 +18,8 @@ def read_home():
 
 
 @app.get("/coffees/{coffee_id}")
-def read_coffee(coffee_id: int, q: str | None = None):
-    return {"coffee_id": coffee_id, "q": q}
+def read_coffee(coffee_id: int, quantity: int | None = None):
+    return {"coffee_id": coffee_id, "coffee": coffees[coffee_id], "quantity": quantity}
 
 
 @app.post("/coffees")
