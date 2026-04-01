@@ -2,7 +2,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Menu - Virtual Coffeeshop</title>
+    <title>Admin - Virtual Coffeeshop</title>
 
     <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css" />
 
@@ -30,12 +30,26 @@
     <header>
       <h1>Virtual coffeeshop</h1>
     </header>
-    <h3>Menu</h3>
-    <ul>
-      {% for coffee in coffees %}
-      <li>{{coffee.name}}</li>
-      {%endfor%}
-    </ul>
-    <footer><a href="/admin">Admin</a></footer>
+    <h3>Admin</h3>
+    <form action="/coffees" method="post">
+      <label for="name">Name</label>
+      <input type="text" name="name" />
+      <label for="price">Price</label>
+      <input type="text" name="price" />
+      <fieldset>
+        <legend>Is Offer?</legend>
+        <div>
+          <input type="radio" id="yes" name="is_offer" value="1" />
+          <label for="yes">Yes</label>
+        </div>
+
+        <div>
+          <input type="radio" id="no" name="is_offer" value="0" checked />
+          <label for="no">No</label>
+        </div>
+      </fieldset>
+      <button type="submit">Create / Update</button>
+    </form>
+    <footer><a href="/">Menu</a></footer>
   </body>
 </html>

@@ -1,13 +1,11 @@
-from fastapi import FastAPI, Request
+from typing import Annotated
+
+from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 app = FastAPI()
-
-coffees = []
-
-templates = Jinja2Templates(directory="templates")
 
 
 class Coffee(BaseModel):
@@ -16,12 +14,30 @@ class Coffee(BaseModel):
     is_offer: bool | None = None
 
 
+coffees: list[Coffee]
+coffees = [
+    {"name": "Espresso", "price": 1, "is_offer": True},
+    {"name": "Latte", "price": 3, "is_offer": False},
+]
+
+templates = Jinja2Templates(directory="templates")
+
+
 @app.get("/", response_class=HTMLResponse)
-def read_home(request: Request):
+def show_home(request: Request):
     return templates.TemplateResponse(
         request,
         "index.html",
         context={"coffees": coffees, "welcome_message": "Have one, not a hundred!"},
+    )
+
+
+@app.get("/admin", response_class=HTMLResponse)
+def show_admin(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "admin.html",
+        context={"coffees": coffees},
     )
 
 
@@ -31,8 +47,12 @@ def read_coffee(coffee_id: int, quantity: int | None = None):
 
 
 @app.post("/coffees")
-def create_coffee(coffee_name: str, price: float, is_offer: bool | None):
-    coffee = {"name": coffee_name, "price": price, "is_offer": is_offer}
+def create_coffee(
+    name: Annotated[str, Form()],
+    price: Annotated[float, Form()],
+    is_offer: Annotated[bool | None, Form()],
+):
+    coffee = {"name": name, "price": price, "is_offer": is_offer}
 
     coffees.append(coffee)
 
