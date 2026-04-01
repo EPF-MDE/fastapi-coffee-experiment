@@ -1,9 +1,13 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 app = FastAPI()
 
 coffees = []
+
+templates = Jinja2Templates(directory="templates")
 
 
 class Coffee(BaseModel):
@@ -12,9 +16,13 @@ class Coffee(BaseModel):
     is_offer: bool | None = None
 
 
-@app.get("/")
-def read_home():
-    return {"Hello": "World"}
+@app.get("/", response_class=HTMLResponse)
+def read_home(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "index.html",
+        context={"coffees": coffees, "welcome_message": "Have one, not a hundred!"},
+    )
 
 
 @app.get("/coffees/{coffee_id}")
