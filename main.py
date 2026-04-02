@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import FastAPI, Request, Form, status, HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, computed_field
 
 app = FastAPI()
 
@@ -11,13 +11,23 @@ app = FastAPI()
 class Coffee(BaseModel):
     name: str
     price: float
+    quantity: int = Field(gte=0)
     is_offer: bool | None = None
+
+
+class PublicCoffee(Coffee):
+    quantity: int = Field(gte=0, exclude=True)
+
+    @computed_field
+    @property
+    def out_of_stock(self) -> bool:
+        return self.quantity == 0
 
 
 coffees: list[Coffee]
 coffees = [
-    {"name": "Espresso", "price": 1, "is_offer": True},
-    {"name": "Latte", "price": 3, "is_offer": False},
+    Coffee(name="Espresso", price=1.0, is_offer=True, quantity=2),
+    Coffee(name="Latte", price=3.0, is_offer=False, quantity=5),
 ]
 
 templates = Jinja2Templates(directory="templates")
