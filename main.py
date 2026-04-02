@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import FastAPI, Request, Form, status, HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, Field, computed_field, TypeAdapter
 
 app = FastAPI()
 
@@ -35,11 +35,16 @@ templates = Jinja2Templates(directory="templates")
 
 @app.get("/")
 def show_home(request: Request, admin: int = 0):
+    coffee_model = PublicCoffee if not admin else Coffee
+    validated_coffees = TypeAdapter(list[coffee_model]).validate_python(
+        [coffee.model_dump() for coffee in coffees]
+    )
+
     return templates.TemplateResponse(
         request,
         "index.html",
         context={
-            "coffees": coffees,
+            "coffees": validated_coffees,
             "welcome_message": "Have one, not a hundred!",
             "admin": admin,
         },
@@ -81,6 +86,7 @@ def create_coffee_action(
     name: Annotated[str, Form()],
     price: Annotated[float, Form()],
     is_offer: Annotated[bool, Form()],
+    quantity: Annotated[int, Form()],
     admin: int = 0,
 ):
     if not admin:
@@ -89,7 +95,7 @@ def create_coffee_action(
             detail="Not admin action",
         )
 
-    coffee = {"name": name, "price": price, "is_offer": is_offer}
+    coffee = Coffee(name=name, price=price, is_offer=is_offer, quantity=quantity)
 
     coffees.append(coffee)
 
@@ -102,6 +108,7 @@ def update_coffee_action(
     name: Annotated[str, Form()],
     price: Annotated[float, Form()],
     is_offer: Annotated[bool, Form()],
+    quantity: Annotated[int, Form()],
     admin: int = 0,
 ):
     if not admin:
@@ -110,12 +117,8 @@ def update_coffee_action(
             detail="Not admin action",
         )
 
-    new_coffee = {
-        "name": name,
-        "price": price,
-        "is_offer": is_offer,
-    }
+    new_coffee = Coffee(name=name, price=price, is_offer=is_offer, quantity=quantity)
 
-    coffees[id].update(new_coffee)
+    coffees[id] = coffees[id].model_copy(update=new_coffee.model_dump())
 
     return RedirectResponse("/?admin=1", status_code=303)
