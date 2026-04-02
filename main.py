@@ -23,7 +23,7 @@ coffees = [
 templates = Jinja2Templates(directory="templates")
 
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/")
 def show_home(request: Request, admin: int = 0):
     return templates.TemplateResponse(
         request,
