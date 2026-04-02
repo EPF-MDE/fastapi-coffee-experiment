@@ -30,6 +30,23 @@ coffees = [
     Coffee(name="Latte", price=3.0, is_offer=False, quantity=5),
 ]
 
+
+def make_money():
+    money: float
+    money = 10.0
+
+    def get_money() -> float:
+        return money
+
+    def set_money(new_money: float) -> float:
+        nonlocal money
+        money = new_money
+
+    return (get_money, set_money)
+
+
+get_money, set_money = make_money()
+
 templates = Jinja2Templates(directory="templates")
 
 
@@ -52,6 +69,7 @@ def show_home(request: Request, purchased_coffee: int = None, admin: int = 0):
         context={
             "coffees": validated_coffees,
             "message": message,
+            "money": get_money(),
             "admin": admin,
         },
     )
@@ -140,6 +158,15 @@ def buy_coffee(id: int, admin: int = 0):
 
     coffee = coffees[id]
 
+    money = get_money()
+    new_money = money - coffee.price
+
+    if new_money < 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Not enough money for that coffee! We can offer a glass of water instead...",
+        )
+
     new_quantity = coffee.quantity - 1
 
     if new_quantity < 0:
@@ -147,6 +174,8 @@ def buy_coffee(id: int, admin: int = 0):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Already out of stock, cannot buy that coffee!",
         )
+
+    set_money(new_money)
 
     new_coffee = coffee.model_copy(update={"quantity": new_quantity})
 
