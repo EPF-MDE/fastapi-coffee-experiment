@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from fastapi import FastAPI, Request, Form, status, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
