@@ -34,12 +34,24 @@
     <ul>
       {% for coffee in coffees %}
       <li>
-        <span>{{coffee.name}} - {{coffee.price}} €&nbsp;</span>
-        {%if coffee.is_offer %}
-        <strong>🎉 SPECIAL OFFER</strong>
-        {%endif%} {%if admin %}
-        <a class="button" href="/coffees/{{loop.index0}}?admin=1">Edit</a>
-        {%endif%}
+        {%if coffee.out_of_stock %}
+        <del>
+          <span>{{coffee.name}} - {{coffee.price}} €</span>
+          {%if coffee.is_offer %} &nbsp;<strong>🎉 SPECIAL OFFER</strong>
+          {%endif%}
+        </del>
+        {%else%}
+        <span>{{coffee.name}} - {{coffee.price}} €</span>
+        {%if coffee.is_offer %} &nbsp;<strong>🎉 SPECIAL OFFER</strong>
+        {%endif%} {%endif%} {%if admin %}
+        <span>
+          ({{coffee.quantity}})
+          <a class="button" href="/coffees/{{loop.index0}}?admin=1">Edit</a>
+        </span>
+        {% else %} {%if not coffee.out_of_stock %}
+        <a class="button" href="/coffees/{{loop.index0}}">Buy</a>
+        {%else%}<i>Out of stock</i>
+        {%endif%} {%endif%}
       </li>
       {%endfor%}
     </ul>
