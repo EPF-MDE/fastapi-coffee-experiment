@@ -21,6 +21,10 @@ class Coffee(CoffeeBase, table=True):
     quantity: int = Field(gt=0)
 
 
+class CoffeeCreate(CoffeeBase):
+    quantity: int = Field(gt=0)
+
+
 def make_money():
     money: float
     money = 10.0
@@ -129,10 +133,7 @@ def update_coffee_page(
 @app.post("/coffees")
 def create_coffee_action(
     session: SessionDep,
-    name: Annotated[str, Form()],
-    price: Annotated[float, Form()],
-    is_offer: Annotated[bool, Form()],
-    quantity: Annotated[int, Form()],
+    data: Annotated[CoffeeCreate, Form()],
     admin: int = 0,
 ):
     if not admin:
@@ -141,7 +142,7 @@ def create_coffee_action(
             detail="Not admin action",
         )
 
-    coffee = Coffee(name=name, price=price, is_offer=is_offer, quantity=quantity)
+    coffee = Coffee(**data.model_dump())
 
     session.add(coffee)
     session.commit()
@@ -154,10 +155,7 @@ def create_coffee_action(
 def update_coffee_action(
     session: SessionDep,
     id: int,
-    name: Annotated[str, Form()],
-    price: Annotated[float, Form()],
-    is_offer: Annotated[bool, Form()],
-    quantity: Annotated[int, Form()],
+    data: Annotated[Coffee, Form()],
     admin: int = 0,
 ):
     if not admin:
@@ -166,13 +164,15 @@ def update_coffee_action(
             detail="Not admin action",
         )
 
-    new_coffee = Coffee(name=name, price=price, is_offer=is_offer, quantity=quantity)
-
     coffee_db = session.get(Coffee, id)
+
     if not coffee_db:
         raise HTTPException(status_code=404, detail="Coffee not found")
 
-    coffee_data = new_coffee.model_dump(exclude_unset=True)
+    # Convert 1/0 to True/False
+    data.is_offer = bool(data.is_offer)
+
+    coffee_data = data.model_dump(exclude_unset=True)
     coffee_db.sqlmodel_update(coffee_data)
     session.add(coffee_db)
     session.commit()
@@ -213,10 +213,7 @@ def buy_coffee(session: SessionDep, id: int, admin: int = 0):
 
     set_money(new_money)
 
-    new_coffee = Coffee(quantity=new_quantity)
-
-    coffee_data = new_coffee.model_dump(exclude_unset=True)
-    coffee_db.sqlmodel_update(coffee_data)
+    coffee_db.sqlmodel_update({"quantity": new_quantity})
     session.add(coffee_db)
     session.commit()
     session.refresh(coffee_db)
